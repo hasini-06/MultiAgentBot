@@ -1,7 +1,7 @@
 from tools import CalculatorTool, StringTool, WeatherTool
 import re
 import streamlit as st
-from huggingface_hub import InferenceClient
+from groq import Groq  # ✅ Import Groq client
 
 class CalculatorAgent:
     def __init__(self):
@@ -50,11 +50,12 @@ class WeatherAgent:
                 return "Please specify a city for the weather."
         return None
     
+
 class MasterAgent:
     def __init__(self):
         self.agents = [CalculatorAgent(), StringAgent(), WeatherAgent()]
-        # ✅ Hugging Face client
-        self.llm = InferenceClient(token=st.secrets["HF_TOKEN"])
+        # ✅ Groq client instead of Hugging Face
+        self.client = Groq(api_key=st.secrets["GROQ_API_KEY"])
 
     def route(self, query: str):
         # Step 1: Try each agent first
@@ -63,17 +64,13 @@ class MasterAgent:
             if response:
                 return response
 
-        # Step 2: If no agent handled it → fallback to Mistral
+        # Step 2: If no agent handled it → fallback to Groq LLM
         try:
-            completion = self.llm.chat_completion(
-                model="mistralai/Mistral-7B-Instruct-v0.2",
+            completion = self.client.chat.completions.create(
+                model="llama-3.3-70b-versatile", 
                 messages=[{"role": "user", "content": query}],
                 max_tokens=200
             )
-            return completion.choices[0].message["content"]
+            return completion.choices[0].message.content
         except Exception as e:
             return f"🤖 Sorry, I couldn't fetch an answer. ({e})"
-    
-
-
-    
