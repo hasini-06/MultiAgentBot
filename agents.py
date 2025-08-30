@@ -1,23 +1,25 @@
 from tools import CalculatorTool, StringTool, WeatherTool
 import re
 import streamlit as st
-from groq import Groq  # ✅ Import Groq client
+from groq import Groq
 
 class CalculatorAgent:
     def __init__(self):
         self.tool = CalculatorTool()
 
     def perform_task(self, request: str):
-        if any(word in request.lower() for word in ["plus", "add", "+", "multiply", "times", "*"]):
+        if any(word in request.lower() for word in ["plus", "add", "+", "multiply", "times", "*","subtract", "minus", "-","divide", "/"]):
             numbers = list(map(int, re.findall(r'\d+', request)))
             if len(numbers) < 2:
                 return "Not enough numbers for calculator."
-
             if any(word in request.lower() for word in ["plus", "add", "+"]):
                 return self.tool.add(numbers[0], numbers[1])
             elif any(word in request.lower() for word in ["times", "multiply", "*"]):
                 return self.tool.multiply(numbers[0], numbers[1])
-
+            elif any(word in request.lower() for word in ["subtract", "minus", "-"]):
+                return self.tool.subtract(numbers[0], numbers[1]) 
+            elif any(word in request.lower() for word in ["divide", "/"]):
+                return self.tool.divide(numbers[0], numbers[1])
         return None
 
 
